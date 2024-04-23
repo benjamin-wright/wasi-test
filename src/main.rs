@@ -1,18 +1,22 @@
-use std::env;
+use warp::Filter;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    let program = args[0].clone();
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    println!("Starting server...");
 
-    if args.len() < 3 {
-        eprintln!("usage: {} <message> <interval>", program);
-        return;
-    }
+    // GET /
+    let help = warp::get()
+        .and(warp::path::end())
+        .map(|| "Try POSTing data to /echo such as: `curl localhost:8080/echo -XPOST -d 'hello world'`\n");
 
-    let duration = std::time::Duration::from_secs(args[2].parse().unwrap());
+    // POST /echo
+    let echo = warp::post()
+        .and(warp::path("echo"))
+        .and(warp::body::bytes())
+        .map(|body_bytes: bytes::Bytes| {
+            format!("{}\n", std::str::from_utf8(body_bytes.as_ref()).unwrap())
+        });
 
-    loop {
-        println!("{}", args[1]);
-        std::thread::sleep(duration);
-    }
+    let routes = help.or(echo);
+    warp::serve(routes).run(([0, 0, 0, 0], 8080)).await
 }

@@ -6,7 +6,14 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+bytes = "1"
+warp_wasi = "0.3"
+tokio_wasi = { version = "1.21", features = ["rt", "macros", "net", "time", "io-util"] }
 
 [[bin]]
 name = "wasm"
 path = "src/main.rs"
+
+[profile.release]
+lto = true
+opt-level = "s"

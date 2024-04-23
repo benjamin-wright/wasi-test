@@ -1,28 +1,80 @@
+CLUSTER_NAME ?= wasm-test
+KUBECONFIG ?= .scratch/kubeconfig.yaml
+REGISTRY_NAME ?= wasm-registry.localhost
+REGISTRY_PATH ?= $(REGISTRY_NAME):5000/$(USER)
+
 .PHONY: init
 init:
 	brew upgrade rustup
-	brew upgrade kind
-	brew upgrade knative/client/kn
+	brew upgrade k3d
 
 	rustup target add wasm32-wasi
 	rustup update
 
 	helm repo add kwasm http://kwasm.sh/kwasm-operator/
+	helm repo add cnpg https://cloudnative-pg.github.io/charts
+
+.PHONY: start
+start: registry cluster infra
+
+.PHONY: registry
+registry:
+	if ! k3d registry list | grep $(REGISTRY_NAME); then \
+		k3d registry create $(REGISTRY_NAME) --port 5000; \
+	fi
 
 .PHONY: cluster
 cluster:
-	kn quickstart kind --install-serving
-	kubectl --context kind-knative patch  configmap config-deployment -n knative-serving -p '{"data": {"registries-skipping-tag-resolving": "localhost:5001"} }'
-	helm upgrade --kube-context kind-knative --install -n kwasm --create-namespace kwasm-operator kwasm/kwasm-operator
-	kubectl --context kind-knative annotate node --all --overwrite kwasm.sh/kwasm-node=true
-	kubectl --context kind-knative patch configmap config-features -n knative-serving -p '{"data": {"kubernetes.podspec-runtimeclassname": "enabled"} }'
+	K3D_FIX_DNS=1 k3d cluster create $(CLUSTER_NAME) \
+		--servers 1 \
+		--registry-use $(REGISTRY_NAME):5000 \
+		--port 80:80@loadbalancer \
+		--wait
 
-.PHONY: teardown
-teardown:
-	-kind delete cluster --name knative
-	-docker stop kind-registry
-	-docker rm kind-registry
+	mkdir -p .scratch
+	k3d kubeconfig get $(CLUSTER_NAME) > $(KUBECONFIG)
+	chmod 600 $(KUBECONFIG)
+
+.PHONY: infra
+infra:
+	helm upgrade --install kwasm-operator kwasm/kwasm-operator \
+		--kubeconfig $(KUBECONFIG) \
+		--namespace kwasm \
+		--create-namespace
+
+	helm upgrade --install cnpg cnpg/cloudnative-pg \
+		--kubeconfig $(KUBECONFIG) \
+		--namespace cnpg-system \
+		--create-namespace
+
+.PHONY: stop
+stop:
+	k3d cluster delete $(CLUSTER_NAME)
+	k3d registry delete $(REGISTRY_NAME)
+	rm -rf .scratch
+
+ifdef CI
+BUILD_ARGS := --release
+endif
 
 .PHONY: build
 build:
-	cargo build
+	cargo build $(BUILD_ARGS)
+
+IMAGE ?= test-image
+.PHONY: image
+image:
+	docker buildx build \
+		-t $(IMAGE) \
+		--platform=wasi/wasm32 \
+		-f docker/wasm.Dockerfile \
+		--output=type=docker \
+		target/wasm32-wasi/release
+
+.PHONY: run
+run:
+	wasmedge target/wasm32-wasi/release/wasm.wasm
+
+.PHONY: docker
+docker:
+	docker run --rm -p 8080:8080 --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm32 $(IMAGE)
