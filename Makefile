@@ -71,10 +71,6 @@ image:
 		--output=type=docker \
 		target/wasm32-wasi/release
 
-.PHONY: run
-run:
-	wasmedge target/wasm32-wasi/release/wasm.wasm
-
 .PHONY: docker
 docker:
-	docker run --rm -p 8080:8080 --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm32 $(IMAGE)
+	docker run --rm -p 8081:8080 --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm32 $(IMAGE)
