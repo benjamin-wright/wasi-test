@@ -31,3 +31,6 @@ macro_rules! start {
         }
     };
 }
+
+// Check out these: https://earthly.dev/blog/rust-macros/
+// https://github.com/rwf2/Rocket/blob/master/examples/hello/src/main.rs
