@@ -1,12 +1,20 @@
-use web_server::server;
+mod helpers;
 
-#[server]
-async fn handler(req: Request<Body>) -> Result<Response<Body>, Error> {
-    match req.uri().path() {
-        "/games" => Ok(Response::new(Body::from("These are your games"))),
-        _ => Ok(Response::builder()
-            .status(404)
-            .body(Body::from("Not Found"))
-            .unwrap()),
-    }
+use warp::{reject::Rejection, reply::Reply, Filter};
+
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
+    let health = warp::path!("health")
+        .and(warp::path::end())
+        .and_then(health_handler);
+    let catch_404 = warp::any()
+        .map(|| warp::reply::with_status("Not found", warp::http::StatusCode::NOT_FOUND));
+    
+    let routes = health.or(catch_404);
+
+    helpers::run(routes).await;
+}
+
+async fn health_handler() -> std::result::Result<impl Reply, Rejection> {
+    Ok("Hello world!")
 }

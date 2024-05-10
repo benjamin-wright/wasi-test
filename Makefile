@@ -26,6 +26,7 @@ registry:
 .PHONY: cluster
 cluster:
 	K3D_FIX_DNS=1 k3d cluster create $(CLUSTER_NAME) \
+		--agents 2 \
 		--servers 1 \
 		--registry-use $(REGISTRY_NAME):5000 \
 		--port 80:80@loadbalancer \
@@ -37,6 +38,8 @@ cluster:
 
 .PHONY: infra
 infra:
+	kubectl annotate node k3d-wasm-test-agent-0 kwasm.sh/kwasm-node=true
+
 	helm upgrade --install kwasm-operator kwasm/kwasm-operator \
 		--kubeconfig $(KUBECONFIG) \
 		--namespace kwasm \
@@ -53,13 +56,9 @@ stop:
 	k3d registry delete $(REGISTRY_NAME)
 	rm -rf .scratch
 
-ifdef CI
-BUILD_ARGS := --release --target wasm32-wasi
-endif
-
 .PHONY: build
 build:
-	cargo build $(BUILD_ARGS)
+	cargo build --release
 
 IMAGE ?= test-image
 .PHONY: image
