@@ -73,4 +73,4 @@ image:
 
 .PHONY: docker
 docker:
-	docker run --rm -p 8081:8080 --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm32 $(IMAGE)
+	docker run --rm -p 8080:8080 -p 8081:8081 --runtime=io.containerd.wasmedge.v1 --platform=wasi/wasm32 $(IMAGE)
