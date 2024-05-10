@@ -23,7 +23,7 @@ pub fn server(_attr: TokenStream, item: TokenStream) -> TokenStream {
             fn handle(&self, req: Request<Body>) -> Pin<Box<dyn std::future::Future<Output = Result<Response<Body>, Error>> + Send>> {
                 Box::pin(async move {
                     println!("request: {:?} {:?}!", req.method(), req.uri());
-                    handler(req)
+                    handler(req).await
                 })
             }
         }

@@ -1,7 +1,7 @@
 use web_server::server;
 
 #[server]
-fn handler(req: Request<Body>) -> Result<Response<Body>, Error> {
+async fn handler(req: Request<Body>) -> Result<Response<Body>, Error> {
     match req.uri().path() {
         "/games" => Ok(Response::new(Body::from("These are your games"))),
         _ => Ok(Response::builder()
