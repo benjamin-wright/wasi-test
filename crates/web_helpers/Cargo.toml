@@ -1,0 +1,8 @@
+[package]
+name = "web_helpers"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+hyper_wasi = { version = "0.15", features = ["full"] }
+tokio_wasi = { version = "1.25.1", features = ["full"] }

@@ -9,6 +9,8 @@ edition = "2021"
 anyhow = "1.0"
 hyper_wasi = { version = "0.15", features = ["full"] }
 tokio_wasi = { version = "1.25.1", features = ["full"] }
+web_server = { path = "./crates/web_server" }
+web_helpers = { path = "./crates/web_helpers" }
 
 [[bin]]
 name = "wasm"

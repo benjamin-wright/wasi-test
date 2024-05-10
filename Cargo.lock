@@ -422,6 +422,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "syn"
+version = "2.0.61"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c993ed8ccba56ae856363b1845da7266a7cb78e1d146c8a32d54b45a8b831fc9"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "unicode-ident",
+]
+
+[[package]]
 name = "tokio-macros"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -429,7 +440,7 @@ checksum = "d266c00fde287f55d3f1c3e96c500c362a2b8c695076ec180f27918820bc6df8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn",
+ "syn 1.0.109",
 ]
 
 [[package]]
@@ -526,6 +537,8 @@ dependencies = [
  "anyhow",
  "hyper_wasi",
  "tokio_wasi",
+ "web_helpers",
+ "web_server",
 ]
 
 [[package]]
@@ -538,6 +551,22 @@ dependencies = [
  "dns-parser",
  "libc",
  "rand",
+]
+
+[[package]]
+name = "web_helpers"
+version = "0.1.0"
+dependencies = [
+ "hyper_wasi",
+ "tokio_wasi",
+]
+
+[[package]]
+name = "web_server"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.61",
 ]
 
 [[package]]

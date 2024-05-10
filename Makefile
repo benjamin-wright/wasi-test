@@ -54,7 +54,7 @@ stop:
 	rm -rf .scratch
 
 ifdef CI
-BUILD_ARGS := --release
+BUILD_ARGS := --release --target wasm32-wasi
 endif
 
 .PHONY: build
