@@ -13,11 +13,12 @@ spec:
         app: {{ .Values.name }}
     spec:
       runtimeClassName: wasmedge
-      nodeSelector:
-        kwasm.sh/kwasm-provisioned: k3d-wasm-test-agent-0
       containers:
       - name: server
         image: {{ .Values.image }}
+        env:
+        - name: RUST_LOG
+          value: example::api
         ports:
         - containerPort: 8080
         resources:

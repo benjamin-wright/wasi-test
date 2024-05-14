@@ -17,9 +17,9 @@ where
     
     // Spawn the server into a runtime
     tokio::spawn(server);
-
-    println!("Listening on http://localhost:8080");
     
+    println!("Listening on http://{}", _addr);
+
     shutdown_signal().await;
 
     println!("stopping...");
