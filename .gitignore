@@ -1,3 +1,4 @@
-/target
-/bin
+target
+bin
 .scratch/
+node_modules

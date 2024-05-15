@@ -24,8 +24,24 @@ k8s_yaml(helm('./chart', set=['name=rust', 'image=rust']))
 k8s_resource(
     'rust',
     trigger_mode = TRIGGER_MODE_MANUAL,
-    port_forwards = [8081],
+    port_forwards = ["8081:8080"],
     labels = ['rust']
+)
+
+
+custom_build(
+    'golang',
+    'IMAGE=$EXPECTED_REF make build-go image-go',
+    ['.'],
+)
+
+k8s_yaml(helm('./chart', set=['name=golang', 'image=golang']))
+
+k8s_resource(
+    'golang',
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    port_forwards = ["8082:8080"],
+    labels = ['golang']
 )
 
 local_resource(
@@ -37,17 +53,25 @@ local_resource(
 )
 
 local_resource(
-    'wasm load - 50 for 1m',
-    'k6 run -q load/wasm-50-users-1m.js',
+    'wasm load - 50 for 30s',
+    'k6 run -q load/wasm-50-users-30s.js',
     auto_init = False,
     trigger_mode = TRIGGER_MODE_MANUAL,
     labels = ['wasm']
 )
 
 local_resource(
-    'rust load - 50 for 1m',
-    'k6 run -q load/rust-50-users-1m.js',
+    'rust load - 50 for 30s',
+    'k6 run -q load/rust-50-users-30s.js',
     auto_init = False,
     trigger_mode = TRIGGER_MODE_MANUAL,
     labels = ['rust']
+)
+
+local_resource(
+    'go load - 50 for 30s',
+    'k6 run -q load/go-50-users-30s.js',
+    auto_init = False,
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    labels = ['golang']
 )

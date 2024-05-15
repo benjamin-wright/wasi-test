@@ -27,4 +27,4 @@ path = "src/main.rs"
 
 [profile.release]
 lto = true
-opt-level = "s"
+opt-level = "z"

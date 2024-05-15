@@ -58,9 +58,20 @@ stop:
 
 .PHONY: build
 build:
-	cargo build --release
+	cd rust && cargo build --release
 	mkdir -p bin
-	mv target/wasm32-wasi/release/wasm.wasm bin/wasm.wasm
+	wasmedge compile --optimize z rust/target/wasm32-wasi/release/wasm.wasm bin/wasm_aot.wasm
+
+.PHONY: build-go
+build-go:
+	cd golang && CGO_ENABLED=0 GOOS=linux GOARCH=arm64 go build -o ../bin/go -ldflags "-s -w" main.go
+
+image-go:
+	docker buildx build \
+		-t $(IMAGE) \
+		-f docker/go.Dockerfile \
+		--output=type=docker \
+		bin
 
 .PHONY: build-native
 build-native:
@@ -69,7 +80,7 @@ build-native:
 		--output=type=docker \
 		-f docker/rust.Dockerfile \
 		--progress plain \
-		.
+		rust
 
 .PHONY: image
 image:
