@@ -2,6 +2,7 @@ CLUSTER_NAME ?= wasm-test
 KUBECONFIG ?= .scratch/kubeconfig.yaml
 REGISTRY_NAME ?= wasm-registry.localhost
 REGISTRY_PATH ?= $(REGISTRY_NAME):5000/$(USER)
+IMAGE ?= test-image
 ARCH ?= $(shell uname -m)
 ifeq ($(ARCH),arm64)
 	ARCH=aarch64
@@ -61,7 +62,15 @@ build:
 	mkdir -p bin
 	mv target/wasm32-wasi/release/wasm.wasm bin/wasm.wasm
 
-IMAGE ?= test-image
+.PHONY: build-native
+build-native:
+	docker buildx build \
+		-t $(IMAGE) \
+		--output=type=docker \
+		-f docker/rust.Dockerfile \
+		--progress plain \
+		.
+
 .PHONY: image
 image:
 	docker buildx build \
