@@ -20,3 +20,11 @@ local_resource(
     trigger_mode = TRIGGER_MODE_MANUAL,
     labels = ['scripts']
 )
+
+local_resource(
+    'load - 50 for 1m',
+    'k6 run -q load/50-users-1m.js',
+    auto_init = False,
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    labels = ['scripts']
+)

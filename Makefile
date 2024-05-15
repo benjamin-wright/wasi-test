@@ -2,12 +2,17 @@ CLUSTER_NAME ?= wasm-test
 KUBECONFIG ?= .scratch/kubeconfig.yaml
 REGISTRY_NAME ?= wasm-registry.localhost
 REGISTRY_PATH ?= $(REGISTRY_NAME):5000/$(USER)
+ARCH ?= $(shell uname -m)
+ifeq ($(ARCH),arm64)
+	ARCH=aarch64
+endif
 
 .PHONY: k3s-wasm
 k3s-wasm:
 	docker buildx build \
 		-t k3s-wasm \
-		--platform=linux/amd64 \
+		--platform=linux/$(ARCH) \
+		--build-arg ARCH=$(ARCH) \
 		--output=type=docker \
 		- < docker/k3s-wasm.Dockerfile
 
@@ -15,6 +20,7 @@ k3s-wasm:
 init:
 	brew upgrade rustup
 	brew upgrade kind
+	brew upgrade k6
 
 	rustup target add wasm32-wasi
 	rustup update
@@ -27,6 +33,8 @@ start: k3s-wasm cluster infra
 # See here: https://www.cncf.io/blog/2024/03/28/webassembly-on-kubernetes-the-practice-guide-part-02/
 .PHONY: cluster
 cluster:
+	docker pull registry:2
+
 	k3d cluster create $(CLUSTER_NAME) \
 		--registry-create $(REGISTRY_NAME) \
 		--image k3s-wasm \
@@ -50,6 +58,8 @@ stop:
 .PHONY: build
 build:
 	cargo build --release
+	mkdir -p bin
+	mv target/wasm32-wasi/release/wasm.wasm bin/wasm.wasm
 
 IMAGE ?= test-image
 .PHONY: image
@@ -58,7 +68,7 @@ image:
 		-t $(IMAGE) \
 		-f docker/wasm.Dockerfile \
 		--output=type=docker \
-		target/wasm32-wasi/release
+		bin
 
 .PHONY: docker
 docker:

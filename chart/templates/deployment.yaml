@@ -18,13 +18,13 @@ spec:
         image: {{ .Values.image }}
         env:
         - name: RUST_LOG
-          value: example::api
+          value: wasi::api
         ports:
         - containerPort: 8080
         resources:
           limits:
-            cpu: 100m
-            memory: 128Mi
+            cpu: 1
+            memory: 52Mi
         lifecycle:
           preStop:
             httpGet:

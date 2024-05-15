@@ -8,7 +8,7 @@ use warp::{reject::Rejection, reply::Reply, Filter};
 async fn main() {
     pretty_env_logger::init();
 
-    let log = warp::log("example::api");
+    let log = warp::log("wasi::api");
 
     let health = warp::path!("health")
         .and(warp::path::end())
