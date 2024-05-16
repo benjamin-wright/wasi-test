@@ -1,5 +1,5 @@
 FROM scratch
 
-COPY wasm_aot.wasm /wasm
+COPY wasm.wasm /wasm
 
 ENTRYPOINT [ "/wasm" ]

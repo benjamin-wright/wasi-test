@@ -60,6 +60,7 @@ stop:
 build:
 	cd rust && cargo build --release
 	mkdir -p bin
+	cp rust/target/wasm32-wasi/release/wasm.wasm bin/wasm.wasm
 	wasmedge compile --optimize z rust/target/wasm32-wasi/release/wasm.wasm bin/wasm_aot.wasm
 
 .PHONY: build-go
@@ -90,6 +91,23 @@ image:
 		--output=type=docker \
 		bin
 
+.PHONY: image-aot
+image-aot:
+	docker buildx build \
+		-t $(IMAGE) \
+		-f docker/wasm_aot.Dockerfile \
+		--output=type=docker \
+		bin
+
 .PHONY: docker
 docker:
 	docker run --rm -p 8080:8080 -p 8081:8081 --runtime=io.containerd.wasmedge.v1 $(IMAGE)
+
+.PHONY: build-node
+build-node:
+	docker buildx build \
+		-t $(IMAGE) \
+		--output=type=docker \
+		-f docker/node.Dockerfile \
+		--progress plain \
+		node

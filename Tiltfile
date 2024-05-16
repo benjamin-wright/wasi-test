@@ -1,4 +1,20 @@
 custom_build(
+    'wasm-aot',
+    'IMAGE=$EXPECTED_REF make image-aot',
+    ['.'],
+    image_deps = ['wasm']
+)
+
+k8s_yaml(helm('./chart', set=['name=wasm-aot', 'image=wasm-aot', 'runtimeClassName=wasmedge']))
+
+k8s_resource(
+    'wasm-aot',
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    port_forwards = ["8084:8080"],
+    labels = ['wasm-aot']
+)
+
+custom_build(
     'wasm',
     'IMAGE=$EXPECTED_REF make build image',
     ['.'],
@@ -44,6 +60,21 @@ k8s_resource(
     labels = ['golang']
 )
 
+custom_build(
+    'node',
+    'IMAGE=$EXPECTED_REF make build-node',
+    ['.'],
+)
+
+k8s_yaml(helm('./chart', set=['name=node', 'image=node']))
+
+k8s_resource(
+    'node',
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    port_forwards = ["8083:8080"],
+    labels = ['node']
+)
+
 local_resource(
     'test',
     'curl http://localhost:8080/health',
@@ -74,4 +105,12 @@ local_resource(
     auto_init = False,
     trigger_mode = TRIGGER_MODE_MANUAL,
     labels = ['golang']
+)
+
+local_resource(
+    'node load - 50 for 30s',
+    'k6 run -q load/node-50-users-30s.js',
+    auto_init = False,
+    trigger_mode = TRIGGER_MODE_MANUAL,
+    labels = ['node']
 )
